@@ -1,130 +1,166 @@
 { config, pkgs, ... }:
 
 {
-  nixpkgs.config = {
-    allowUnfree = true;
-    allowUnfreePredicate = obsidian: true;
-  };
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
-  home.username = "tom";
-  home.homeDirectory = "/home/tom";
+  home.username = "tom-blk";
+  home.homeDirectory = "/home/tom-blk";
 
-  # This value determines the Home Manager release that your configuration is
-  # compatible with. This helps avoid breakage when a new Home Manager release
-  # introduces backwards incompatible changes.
-  #
-  # You should not change this value, even if you update Home Manager. If you do
-  # want to update the value, then make sure to first check the Home Manager
-  # release notes.
-  home.stateVersion = "23.11"; # Please read the comment before changing.
+  # REQUIRED: stateVersion
+  home.stateVersion = "25.11";
 
-  # The home.packages option allows you to install Nix packages into your
-  # environment.
+  programs.home-manager.enable = true;
+
+  # Packages
   home.packages = with pkgs; [
-  jack2
-	slack
-	tuxguitar
-	discord
-    guitarix
-    reaper
-  	brave
-	gimp
-	qjackctl
-	tmux
-	rocmPackages_5.llvm.clang
-	rustup
-	bitwarden
-	libreoffice-fresh
-	obsidian
-	maestral
-	maestral-gui
-	firefox
-	signal-desktop
-	telegram-desktop
-	inkscape-with-extensions
-	blender
-	spotify
-	git
-    nodejs_22
-    vscode
-    # # Adds the 'hello' command to your environment. It prints a friendly
-    # # "Hello, world!" when run.
-    # pkgs.hello
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
-
-    # # You can also create simple shell scripts directly inside your
-    # # configuration. For example, this adds a command 'my-hello' to your
-    # # environment:
-    # (pkgs.writeShellScriptBin "my-hello" ''
-    #   echo "Hello, ${config.home.username}!"
-    # '')
+    hyprland
+    waybar
+    wl-clipboard
+    nerd-fonts.droid-sans-mono
+    obsidian
+    shotcut
+    gimp
+    shutter
+    brave
+    opencode
+    tree-sitter
+    ripgrep
+    gcc
+    fzf
+    jq
+    swaybg
+    fd
+    ast-grep
+    python3
+    lazygit
+    curl
+    unzip
+    gzip
+    nixd
+    nodejs_24
+    go
   ];
 
-  # Home Manager is pretty good at managing dotfiles. The primary way to manage
-  # plain files is through 'home.file'.
-  home.file = {
-    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
-    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
-    # # symlink to the Nix store copy.
-    # ".screenrc".source = dotfiles/screenrc;
+  # Dotfiles
 
-    # # You can also set the file content immediately.
-    # ".gradle/gradle.properties".text = ''
-    #   org.gradle.console=verbose
-    #   org.gradle.daemon.idletimeout=3600000
-    # '';
+  ## Hyprland
+  xdg.configFile."hypr/hyprland.conf".source = ./dotfiles/hypr/hyprland.conf;
+
+  ## Rofi
+  xdg.configFile."rofi/theme.rasi".source = ./dotfiles/rofi/theme.rasi;
+
+  ## Alacritty
+  xdg.configFile."alacritty".source = ./dotfiles/alacritty;
+
+  ## Neovim
+  xdg.configFile."nvim".source = ./dotfiles/nvim;
+
+  # Fonts
+  fonts.fontconfig.enable = true;
+
+  # Bash
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      PS1="\[\033[1;32m\][\u@\h:\w]\\$\[\033[0m\] "
+      .. () { cd ..; }
+      :q () { exit; }
+      ,, () { clear; }
+    '';
+    shellAliases = {
+      la = "ls -la";
+      d = "mkdir";
+      f = "touch";
+      gaa = "git add .";
+      gcm = "git commit -m";
+      gp = "git push";
+      gpu = "git pull";
+      gco = "git checkout";
+      gcb = "git checkout -b";
+      nixclean = "sudo nix-env --delete-generations +3 --profile /nix/var/nix/profiles/system && sudo nix-collect-garbage -d";
+    };
   };
 
-  # Home Manager can also manage your environment variables through
-  # 'home.sessionVariables'. These will be explicitly sourced when using a
-  # shell provided by Home Manager. If you don't want to manage your shell
-  # through Home Manager then you have to manually source 'hm-session-vars.sh'
-  # located at either
-  #
-  #  ~/.nix-profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  ~/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  /etc/profiles/per-user/tom/etc/profile.d/hm-session-vars.sh
-  #
-  home.sessionVariables = {
-    # EDITOR = "emacs";
+  # SSH
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    matchBlocks = {
+      "*" = {
+        serverAliveInterval = 60;
+        serverAliveCountMax = 3;
+      };
+      "github.com" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "~/.ssh/github/github";
+      };
+      "oxlo-dev" = {
+        hostname = "52.158.46.180";
+        user = "cyborg";
+        identityFile = "~/.ssh/cyborg/cyborg_alpha_key";
+      };
+      "oxlo-backend" = {
+        hostname = "40.81.231.55";
+        user = "oxlo";
+        identityFile = "~/.ssh/cyborg/oxkey.pem";
+      };
+    };
   };
 
-  programs.neovim =
-  let 
-    toLua = str: "lua << EOF\n${str}\nEOF\n";
-    toLuaFile = file: "lua << EOF\n${builtins.readFile file}\nEOF\n";
-  in
-  {
-      enable = true;
-
-      viAlias = true;
-      vimAlias = true;
-      vimdiffAlias = true;
-  };
-
-  xdg.configFile.nvim = {  
-  	source = config.lib.file.mkOutOfStoreSymlink ./nvim;
-  	recursive = true;  
-  };
-
+  # Tmux
   programs.tmux = {
-      enable = true;
-      shortcut = "t";
-      prefix = " ";
+    enable = true;
+    mouse = true;
+    keyMode = "vi";
+    prefix = "f5";
+    baseIndex = 1;
+    plugins = with pkgs.tmuxPlugins; [
+      sensible
+      resurrect
+      tokyo-night-tmux
+    ];
   };
 
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  # Dropbox
+  services.dropbox.enable = true;
+
+  # Theme
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+  };
+
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
+  };
+
+  qt = {
+    enable = true;
+    platformTheme.name = "gtk";
+    style.name = "adwaita-dark";
+  };
+
+  # Default Apps
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/html" = [ "brave" ];
+      "x-scheme-handler/http" = [ "brave" ];
+      "x-scheme-handler/https" = [ "brave" ];
+    };	
+  };
+
+  # Scripts
+  home.file.".local/bin/work" = {
+    source = ./dotfiles/scripts/work.sh;
+    executable = true;
+  };
+  home.file.".local/bin/personal" = {
+    source = ./dotfiles/scripts/personal.sh;
+    executable = true;
+  };
 }
