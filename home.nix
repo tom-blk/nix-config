@@ -11,15 +11,14 @@
 
   # Packages
   home.packages = with pkgs; [
+    # Free
     hyprland
     waybar
     wl-clipboard
     nerd-fonts.droid-sans-mono
-    obsidian
     shotcut
     gimp
     shutter
-    brave
     opencode
     tree-sitter
     ripgrep
@@ -37,6 +36,15 @@
     nixd
     nodejs_24
     go
+    signal-desktop
+    telegram-desktop
+
+    #Unfree
+    spotify
+    antigravity
+    obsidian
+    brave
+    code-cursor
   ];
 
   # Dotfiles
