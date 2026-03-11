@@ -38,6 +38,8 @@
     go
     signal-desktop
     telegram-desktop
+    libreoffice
+    grimblast
 
     #Unfree
     spotify
@@ -46,6 +48,11 @@
     brave
     code-cursor
   ];
+
+  programs.claude-code = {
+   enable = true;
+   agentsDir = /home/tom-blk/code/agency-agents;
+  };
 
   # Dotfiles
 
